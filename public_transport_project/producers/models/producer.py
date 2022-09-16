@@ -31,16 +31,16 @@ class Producer:
         self.num_partitions = num_partitions
         self.num_replicas = num_replicas
 
-        #
-        #
+        # A Kafka broker receives messages from producers and stores them on disk keyed by unique offset.
+        # A Kafka broker allows consumers to fetch messages by topic, partition and offset.
+        # Kafka brokers can create a Kafka cluster by sharing information between each other directly or 
+        # indirectly using Zookeeper.
+        
         # TODO: Configure the broker properties below. Make sure to reference the project README
         # and use the Host URL for Kafka and Schema Registry!
         #
-        #
         self.broker_properties = {
-            # TODO
-            # TODO
-            # TODO
+            'bootstrap.servers': 'PLAINTEXT://localhost:9092'
         }
 
         # If the topic does not already exist, try to create it
@@ -49,8 +49,11 @@ class Producer:
             Producer.existing_topics.add(self.topic_name)
 
         # TODO: Configure the AvroProducer
-        # self.producer = AvroProducer(
-        # )
+        # SchemaRegistry see README.md
+        self.producer = AvroProducer(
+            self.broker_properties,                             schema_registry=CachedSchemaRegistryClient('http://localhost:8081'),
+                default_key_schema=self.key_schema,                                    default_value_schema=self.value_schema
+        )
 
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
@@ -58,8 +61,8 @@ class Producer:
         #
         # TODO: Write code that creates the topic for this producer if it does not already exist on
         # the Kafka Broker.
-        #
-        #
+        #           
+        AdminClient(self.broker_properties).create_topics([NewTopic(self.topic_name, num_partitions = 1)])             
         logger.info("topic creation kafka integration incomplete - skipping")
 
     def time_millis(self):
@@ -70,8 +73,9 @@ class Producer:
         #
         #
         # TODO: Write cleanup code for the Producer here
-        #
-        #
+        if self.producer is not None:
+            self.producer.flush()
+            logger.info("flushed producer")
         logger.info("producer close incomplete - skipping")
 
     def time_millis(self):
